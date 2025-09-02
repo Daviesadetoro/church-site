@@ -39,6 +39,62 @@ function registerEvent(eventName) {
     }
 }
 
+fetch('events.json')
+  .then(response => response.json())
+  .then(data => {
+    const container = document.getElementById('events-container');
+    container.className = 'hostels-grid'; 
+
+    data.events.forEach(event => {
+      const card = document.createElement('div');
+      card.className = 'hostel-card event-card';
+      card.innerHTML = `
+        <div class="hostel-image">
+          <img src="${event.image}" alt="${event.title}">
+          <div class="hostel-distance">${event.duration}</div>
+        </div>
+        <div class="hostel-content">
+          <div class="hostel-header">
+            <h3 class="hostel-name">${event.title}</h3>
+            <div class="hostel-rating" style="color: #fff;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12,6 12,12 16,14"></polyline>
+              </svg>
+              <span>${event.date}</span>
+            </div>
+          </div>
+          <div class="hostel-location">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <span>${event.location}</span>
+          </div>
+          <div class="event-description">
+            <p>${event.description}</p>
+          </div>
+          <div class="hostel-amenities">
+            ${event.tags.map(tag => `
+              <div class="amenity-tag"><span>${tag}</span></div>
+            `).join('')}
+          </div>
+          <div class="hostel-footer">
+            <div class="hostel-price">
+              Everyone<span> welcome</span>
+            </div>
+            <button class="apply-btn" onclick="window.location.href='contact.html'">Join Program</button>
+          </div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  })
+  .catch(error => console.error('Error loading events:', error));
+
+
+
+
 function handleContactForm() {
   const contactForm = document.getElementById('contact-form');
   if (!contactForm) return;

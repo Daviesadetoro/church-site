@@ -1,0 +1,40 @@
+{
+  "events": [
+    {
+      "title": "Five Day Program",
+      "date": "Aug 26-31",
+      "duration": "5 Days",
+      "location": "Church Hall",
+      "description": "Join us for an intensive five-day spiritual journey featuring daily worship, Bible study...",
+      "image": "/images/5-day program logo.jpg",
+      "tags": ["Fasting and Prayer", "Bible Study", "Evangelism", "Guest Preachers"]
+    },
+    {
+      "title": "Community Evangelism",
+      "date": "Every 1st Sat",
+      "duration": "Outreach",
+      "location": "Church Hall",
+      "description": "A one-day outreach to share the Gospel with our neighborhood.",
+      "image": "/images/evangelism logo.jpg",
+      "tags": ["Outreach", "Evangelism", "Bible Study", "Door-to-Door", "Tracts"]
+    },
+    {
+      "title": "Midweek Bible Study",
+      "date": "Wed 5:45PM",
+      "duration": "Weekly",
+      "location": "Church Hall",
+      "description": "Join us every Wednesday evening for an in-depth study of the Scriptures.",
+      "image": "https://images.unsplash.com/photo-1524230572899-a752b3835840?w=600&h=400&fit=crop",
+      "tags": ["Bible", "Scripture Study", "Prayer"]
+    },
+    {
+      "title": "Thursday Repeat Bible Study",
+      "date": "Thur 9:30AM",
+      "duration": "Weekly",
+      "location": "Church Hall",
+      "description": "Join us every Thursday for a repeat in-depth study of the Scriptures.",
+      "image": "https://images.unsplash.com/photo-1524230572899-a752b3835840?w=600&h=400&fit=crop",
+      "tags": ["Bible Study", "Fellowship", "Prayer"]
+    }
+  ]
+}
