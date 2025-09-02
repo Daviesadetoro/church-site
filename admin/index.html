@@ -1,61 +1,92 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Content Manager</title>
+<head>
+  <meta charset="utf-8" />
+  <title>Content Manager</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+</head>
+<body>
+  <div id="nc-root"></div>
 
-    <!-- Identity widget (for login UI) -->
-    <script src="https://unpkg.com/netlify-identity-widget@^1.9.0/build/netlify-identity-widget.js"></script>
+  <script>
+    // loads a script and returns a Promise
+    function loadScript(src) {
+      return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.async = true;
+        s.onload = () => resolve(src);
+        s.onerror = () => reject(new Error('Failed to load ' + src));
+        document.head.appendChild(s);
+      });
+    }
 
-    <!-- Netlify CMS app (UMD build) -->
-    <script src="https://unpkg.com/netlify-cms-app@^2.15.0/dist/netlify-cms.js"></script>
-  </head>
-  <body>
-    <div id="nc-root"></div>
+    (async function init() {
+      // try a list of CDN URLs in order
+      const identityUrls = [
+        'https://unpkg.com/netlify-identity-widget@^1.9.0/build/netlify-identity-widget.js',
+        'https://cdn.jsdelivr.net/npm/netlify-identity-widget@^1.9.0/build/netlify-identity-widget.js'
+      ];
 
-    <script>
-      // Safety: wait until the CMS library is available before initializing.
-      (function waitForNetlifyCms(retries = 0) {
-        const max = 30; // timeout after ~30 * 200ms = 6s
-        if (window.NetlifyCmsApp) {
-          // Use manual init so we can point to admin/config.yml
-          window.CMS_MANUAL_INIT = true;
-          try {
-            NetlifyCmsApp.init({ configPath: 'config.yml' });
-          } catch (e) {
-            console.error('NetlifyCmsApp.init failed:', e);
-          }
-          return;
-        }
+      const cmsUrls = [
+        // preferred: netlify-cms (older stable package that exposes expected globals)
+        'https://unpkg.com/netlify-cms@^2.0.0/dist/netlify-cms.js',
+        // alternative mirrors
+        'https://cdn.jsdelivr.net/npm/netlify-cms@^2.0.0/dist/netlify-cms.js',
+        // fallback (older naming)
+        'https://unpkg.com/netlify-cms-app@^2.0.0/dist/netlify-cms.js',
+        'https://cdn.jsdelivr.net/npm/netlify-cms-app@^2.0.0/dist/netlify-cms.js'
+      ];
 
-        // sometimes the global is exposed as CMS instead — support that too
-        if (window.CMS) {
-          try {
-            // CMS (older UMD) accepts init directly with configPath
-            CMS.init({ configPath: 'config.yml' });
-          } catch (e) {
-            console.error('CMS.init failed:', e);
-          }
-          return;
-        }
-
-        // not ready — retry a few times
-        if (retries < max) {
-          setTimeout(() => waitForNetlifyCms(retries + 1), 200);
-        } else {
-          console.error('Netlify CMS did not load within expected time.');
-        }
-      })();
-
-      // Optional: open login modal automatically if not signed in
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.on('init', user => {
-          if (!user) {
-            // don't force it open immediately — uncomment if you want auto-open
-            // window.netlifyIdentity.open('login');
-          }
-        });
+      // load identity widget (optional but helpful)
+      for (const url of identityUrls) {
+        try { await loadScript(url); break; } catch(e) { console.warn('identity load failed', url); }
       }
-    </script>
-  </body>
+
+      // load the CMS script from first working CDN
+      let cmsLoaded = false;
+      for (const url of cmsUrls) {
+        try {
+          await loadScript(url);
+          cmsLoaded = true;
+          console.log('Loaded Netlify CMS from', url);
+          break;
+        } catch (e) {
+          console.warn('Failed to load Netlify CMS from', url);
+        }
+      }
+
+      // if CDN failed, attempt local fallback (admin/netlify-cms.js)
+      if (!cmsLoaded) {
+        try {
+          await loadScript('./netlify-cms.js');
+          cmsLoaded = true;
+          console.log('Loaded local Netlify CMS bundle (admin/netlify-cms.js)');
+        } catch (e) {
+          console.error('All CDN attempts failed and local fallback missing. Please add admin/netlify-cms.js or allow CDN access.', e);
+          return;
+        }
+      }
+
+      // sanity check the globals
+      console.log('Globals:', {
+        NetlifyCmsApp: typeof window.NetlifyCmsApp,
+        CMS: typeof window.CMS,
+        netlifyIdentity: typeof window.netlifyIdentity
+      });
+
+      // manual init pointing to config.yml
+      window.CMS_MANUAL_INIT = true;
+      if (window.NetlifyCmsApp && typeof window.NetlifyCmsApp.init === 'function') {
+        NetlifyCmsApp.init({ configPath: 'config.yml' });
+        console.log('NetlifyCmsApp.init() called.');
+      } else if (window.CMS && typeof window.CMS.init === 'function') {
+        CMS.init({ configPath: 'config.yml' });
+        console.log('CMS.init() called.');
+      } else {
+        console.error('No init function found on Netlify CMS globals.');
+      }
+    })();
+  </script>
+</body>
 </html>
