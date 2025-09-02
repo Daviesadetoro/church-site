@@ -3,9 +3,24 @@
   <head>
     <meta charset="utf-8" />
     <title>Content Manager</title>
-    <script src="https://unpkg.com/netlify-cms-app@^2.0.0/dist/netlify-cms.js"></script>
+    <!-- Identity widget (so the login modal can show properly) -->
+    <script src="https://unpkg.com/netlify-identity-widget@^1.9.0/build/netlify-identity-widget.js"></script>
+    <!-- Netlify CMS app -->
+    <script src="https://unpkg.com/netlify-cms-app@^2.15.0/dist/netlify-cms.js"></script>
   </head>
   <body>
     <div id="nc-root"></div>
+    <script>
+      // In some environments auto-init fails; force it and point to config.yml explicitly
+      window.CMS_MANUAL_INIT = true;
+      NetlifyCmsApp.init({ configPath: 'config.yml' });
+
+      // Optional: automatically open the login modal if not logged in
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.on('init', user => {
+          if (!user) window.netlifyIdentity.open('login');
+        });
+      }
+    </script>
   </body>
 </html>
