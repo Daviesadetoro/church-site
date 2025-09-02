@@ -3,22 +3,57 @@
   <head>
     <meta charset="utf-8" />
     <title>Content Manager</title>
-    <!-- Identity widget (so the login modal can show properly) -->
+
+    <!-- Identity widget (for login UI) -->
     <script src="https://unpkg.com/netlify-identity-widget@^1.9.0/build/netlify-identity-widget.js"></script>
-    <!-- Netlify CMS app -->
+
+    <!-- Netlify CMS app (UMD build) -->
     <script src="https://unpkg.com/netlify-cms-app@^2.15.0/dist/netlify-cms.js"></script>
   </head>
   <body>
     <div id="nc-root"></div>
-    <script>
-      // In some environments auto-init fails; force it and point to config.yml explicitly
-      window.CMS_MANUAL_INIT = true;
-      NetlifyCmsApp.init({ configPath: 'config.yml' });
 
-      // Optional: automatically open the login modal if not logged in
+    <script>
+      // Safety: wait until the CMS library is available before initializing.
+      (function waitForNetlifyCms(retries = 0) {
+        const max = 30; // timeout after ~30 * 200ms = 6s
+        if (window.NetlifyCmsApp) {
+          // Use manual init so we can point to admin/config.yml
+          window.CMS_MANUAL_INIT = true;
+          try {
+            NetlifyCmsApp.init({ configPath: 'config.yml' });
+          } catch (e) {
+            console.error('NetlifyCmsApp.init failed:', e);
+          }
+          return;
+        }
+
+        // sometimes the global is exposed as CMS instead — support that too
+        if (window.CMS) {
+          try {
+            // CMS (older UMD) accepts init directly with configPath
+            CMS.init({ configPath: 'config.yml' });
+          } catch (e) {
+            console.error('CMS.init failed:', e);
+          }
+          return;
+        }
+
+        // not ready — retry a few times
+        if (retries < max) {
+          setTimeout(() => waitForNetlifyCms(retries + 1), 200);
+        } else {
+          console.error('Netlify CMS did not load within expected time.');
+        }
+      })();
+
+      // Optional: open login modal automatically if not signed in
       if (window.netlifyIdentity) {
         window.netlifyIdentity.on('init', user => {
-          if (!user) window.netlifyIdentity.open('login');
+          if (!user) {
+            // don't force it open immediately — uncomment if you want auto-open
+            // window.netlifyIdentity.open('login');
+          }
         });
       }
     </script>
